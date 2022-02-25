@@ -3,6 +3,7 @@ package com.example.testjunit;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
@@ -21,10 +22,21 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
-@ExtendWith(FindSlowTestExtension.class)
+//1. 확장모델 등록 방법1: @ExtendWith 사용하기 -> 기본 생성자 이용
+// THRESHOLD 값을 넣어 줄 수 있는 방법이 없다.
+//@ExtendWith(FindSlowTestExtension.class)
 class StudyTest {
 
     int value = 1;
+
+    //2. 확장모델 등록 방법2: THRESHOLD 값을 변경할 수 있다.
+    // FindSlowExtension.class에 threshold가 생성자로 들어가야함.
+    // 따라서 THRESHOLD 값을 넣어 줄 수 있다.
+    @RegisterExtension
+    static FindSlowTestExtension findSlowTestExtension
+            = new FindSlowTestExtension(1000L);
+
+
 
     @FastTest
     void create() {
@@ -33,7 +45,6 @@ class StudyTest {
         assertEquals(StudyStatus.DRAFT, study.getStatus(),
                 () -> "스터디를 처음 만들면" + StudyStatus.DRAFT + " 상태이다.");
     }
-
 
     @DisplayName("예외 발생 테스트 1")
     @FastTest

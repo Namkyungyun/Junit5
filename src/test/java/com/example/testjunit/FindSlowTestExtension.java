@@ -9,7 +9,12 @@ import java.lang.reflect.Method;
 public class FindSlowTestExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback {
     
     //1초 이상 걸리면 길다고 가정하기 위해
-    private static final long THRESHOLD = 1000L;
+    private long THRESHOLD;
+    
+    // @RegisterExtension을 이용할 경우, THRESHOLD 값을 변경하기 위한 생성자
+    public FindSlowTestExtension(long THRESHOLD) {
+        this.THRESHOLD = THRESHOLD;
+    }
 
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) throws Exception {
@@ -17,7 +22,6 @@ public class FindSlowTestExtension implements BeforeTestExecutionCallback, After
         /** store에 저장할 값 넣기**/
         store.put("START_TIME", System.currentTimeMillis());
     }
-
 
     @Override
     public void afterTestExecution(ExtensionContext extensionContext) throws Exception {
