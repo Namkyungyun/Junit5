@@ -1,6 +1,7 @@
 package com.example.testjunit;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.AggregateWith;
@@ -20,10 +21,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@ExtendWith(FindSlowTestExtension.class)
 class StudyTest {
 
-    @Test
-    @Tag("fast")
+    int value = 1;
+
+    @FastTest
     void create() {
         Study study = new Study(1);
         assertNotNull(study);
@@ -31,16 +34,16 @@ class StudyTest {
                 () -> "스터디를 처음 만들면" + StudyStatus.DRAFT + " 상태이다.");
     }
 
-    @Test
+
     @DisplayName("예외 발생 테스트 1")
-    @Tag("fast")
+    @FastTest
     void create_throw_one() {
         assertThrows(IllegalArgumentException.class, () -> new Study(-10));
     }
 
-    @Test
+
     @DisplayName("예외 발생 테스트2,예외메시지 파라미터로 받기")
-    @Tag("fast")
+    @FastTest
     void create_throw_two() {
         IllegalArgumentException exception
                 = assertThrows(IllegalArgumentException.class, () -> new Study(-10));
@@ -48,9 +51,9 @@ class StudyTest {
         assertEquals("limit은 0보다 커야 합니다.", message);
     }
 
-    @Test
+
     @DisplayName("timeout")
-    @Tag("fast")
+    @FastTest
     void create_timeout() {
         assertTimeout(Duration.ofMillis(400), () -> {
             new Study(10);
@@ -58,20 +61,19 @@ class StudyTest {
         });
     }
 
-    @Test
+
     @DisplayName("timeoutPreemptively_ 100milis 넘으면 즉각 종료")
-    @Tag("slow")
+    @SlowTest
     void create_timeout_preemptively() {
         assertTimeoutPreemptively(Duration.ofMillis(400), () -> {
             new Study(10);
             Thread.sleep(300);
         });
 
-        // TODO ThreadLocal
     }
-    @Test
+
     @DisplayName("조건에 따른 테스트1")
-    @Tag("slow")
+    @SlowTest
     void create_assume_one() {
         assumeTrue("skaru".equalsIgnoreCase(System.getenv("USERNAME")));
 
@@ -79,9 +81,9 @@ class StudyTest {
         Study actual = new Study(10);
         assertThat(actual.getLimit()).isGreaterThan(0);
     }
-    @Test
+
     @DisplayName("조건에 따른 테스트2")
-    @Tag("slow")
+    @SlowTest
     void create_assumingThat() {
 
         assumingThat("skaru".equalsIgnoreCase(System.getenv("USERNAME")), () -> {
@@ -177,5 +179,33 @@ class StudyTest {
         public Object aggregateArguments(ArgumentsAccessor accessor, ParameterContext context) throws ArgumentsAggregationException {
             return new Study(accessor.getInteger(0), accessor.getString(1));
         }
+    }
+
+    @DisplayName("공용사용테스트1")
+    @SlowTest
+    void shareTestInstance() {
+        System.out.println(this);
+        System.out.println(value++);
+        Study study = new Study(1);
+        assertThat(study.getLimit()).isGreaterThan(0);
+        //여기서 value값이 1
+    }
+
+    @DisplayName("공용사용테스트2")
+    @FastTest
+    void shareTestInstance2() {
+        System.out.println(this);
+        System.out.println("create => \t" + value++);
+        //여기서 value값이 2
+
+    }
+
+    @DisplayName("extension테스트")
+    @SlowTest
+    void extensionTest() throws InterruptedException {
+        Thread.sleep(1005L);
+        System.out.println(this);
+        System.out.println("create => \t" + value++);
+
     }
 }
